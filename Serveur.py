@@ -5,13 +5,12 @@ import pickle
 
 SIZE = 100
 TIMEOUT = 0.0
-
-DEBUG = True
+PORT = 12000
 
 class Clients:
     def __init__(self):
         self.connexion = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.connexion.bind(('',12000))
+        self.connexion.bind(('',PORT))
         self.clients_connectes = []
         self.connexion.listen(5)
 
@@ -56,20 +55,13 @@ class Clients:
         return msg_recu
 
     def update(self):
-        global DEBUG
         liste_pos = [[a.posx, a.posy] for a in self.clients_connectes]
         n = len(self.clients_connectes)
         for c in self.clients_connectes:
             reception = self.communicate(c.nClient, [n, c.nClient] + liste_pos)
             if reception != None:
-                if DEBUG:
-                    print(reception)
-                    DEBUG = False
+                c.vx, c.vy = reception
 
-                try:
-                    c.vx, c.vy = reception
-                except:
-                    print(reception)
     def run(self):
         self.accepter_new()
         self.update()
