@@ -4,15 +4,20 @@ import time
 import pygame
 from pygame.locals import *
 
-
 SERV_IP = input('IP serveur >>> ')
-SERV_PORT = int(input('Port serveur >>> '))
+
+if SERV_IP == '':
+    SERV_IP, SERV_PORT, FREIN = 'localhost', 12000, 50
+else:
+    SERV_PORT = int(input('Port serveur >>> '))
+    FREIN = float(input('50 est bien : '))
+
+
 SIZE = 700
 COLOR_BG = (255,255,255)
 COLOR_P1 = (0,0,0)
 COLOR_P = (0,0,200)
-FREIN = float(input('Entre 0 et 1 : '))
-SPEED = 50
+SPEED = 150
 
 class Entity:
     def __init__(self, servIP = SERV_IP, port = SERV_PORT):
@@ -20,11 +25,10 @@ class Entity:
         self.port = port
         self.connexion = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        self.posx = 0
-        self.posy = 0
-        self.vx = 0
-        self.vy = 0
-        self.frein = 5
+        self.posx = 0.
+        self.posy = 0.
+        self.vx = 0.
+        self.vy = 0.
         self.world = []
 
     def connect(self):
@@ -61,6 +65,7 @@ def main():
     me = Entity()
     me.connect()
     fenetre = pygame.display.set_mode((SIZE, SIZE))
+    last_updated = time.time()
     while True:
         me.communicate()
         me.afficher(fenetre)
@@ -69,6 +74,7 @@ def main():
             if event.type == QUIT:
                 while True:
                     me.connexion.send(b'fin')
+                    time.sleep(0.2)
             if event.type == KEYDOWN:
                 if event.key == K_UP:
                     me.vy = -SPEED
@@ -78,8 +84,22 @@ def main():
                     me.vx = -SPEED
                 if event.key == K_RIGHT:
                     me.vx = SPEED
-        me.vx = FREIN*me.vx 
-        me.vy = FREIN*me.vy
+
+
+        if me.vx >= 0:
+            me.vx = max(me.vx - FREIN*(time.time()-last_updated), 0)
+        else:
+            me.vx = min(me.vx + FREIN*(time.time()-last_updated), 0)
+
+        if me.vy >= 0:
+            me.vy = max(me.vy - FREIN*(time.time()-last_updated), 0)
+        else:
+            me.vy = min(me.vy + FREIN*(time.time()-last_updated), 0)
+
+        last_updated = time.time()
+
+
+
 
 
 

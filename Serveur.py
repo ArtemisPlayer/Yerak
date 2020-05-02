@@ -6,7 +6,7 @@ import pickle
 SIZE = 100
 TIMEOUT = 0.0
 
-
+DEBUG = True
 
 class Clients:
     def __init__(self):
@@ -46,21 +46,30 @@ class Clients:
             self.clients_connectes[nClient].vy = 0
             return None
 
-        msg_recu = pickle.loads(msg_recu)
-
-        bdata = pickle.dumps(data)
-        connClient.send(bdata)
+        try:
+            msg_recu = pickle.loads(msg_recu)
+            bdata = pickle.dumps(data)
+            connClient.send(bdata)
+        except:
+            print('pickle error, passing')
 
         return msg_recu
 
     def update(self):
+        global DEBUG
         liste_pos = [[a.posx, a.posy] for a in self.clients_connectes]
         n = len(self.clients_connectes)
         for c in self.clients_connectes:
             reception = self.communicate(c.nClient, [n, c.nClient] + liste_pos)
             if reception != None:
-                c.vx, c.vy = reception
+                if DEBUG:
+                    print(reception)
+                    DEBUG = False
 
+                try:
+                    c.vx, c.vy = reception
+                except:
+                    print(reception)
     def run(self):
         self.accepter_new()
         self.update()
