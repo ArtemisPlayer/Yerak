@@ -45,22 +45,19 @@ class Clients:
             self.clients_connectes[nClient].vy = 0
             return None
 
-        try:
-            msg_recu = pickle.loads(msg_recu)
-            bdata = pickle.dumps(data)
-            connClient.send(bdata)
-        except:
-            print('pickle error, passing')
+        msg_recu = pickle.loads(msg_recu)
+        bdata = pickle.dumps(data)
+        connClient.send(bdata)
 
         return msg_recu
 
     def update(self):
-        liste_pos = [[a.posx, a.posy] for a in self.clients_connectes]
+        liste_send = [[a.vx, a.vy, a.posx, a.posy] for a in self.clients_connectes]
         n = len(self.clients_connectes)
         for c in self.clients_connectes:
-            reception = self.communicate(c.nClient, [n, c.nClient] + liste_pos)
+            reception = self.communicate(c.nClient, [n, c.nClient] + liste_send)
             if reception != None:
-                c.vx, c.vy = reception
+                c.vx, c.vy, c.posx, c.posy = reception
 
     def run(self):
         self.accepter_new()
@@ -90,6 +87,8 @@ def main():
     serv = Clients()
     while True:
         serv.run()
+
+
 
 main()
 
