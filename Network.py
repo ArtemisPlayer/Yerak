@@ -8,24 +8,28 @@ from math import floor
 SERV_IP = input('IP serveur >>> ')
 
 if SERV_IP == '':
-    SERV_IP, SERV_PORT, FREIN = 'localhost', 12000, 50
+    SERV_IP, SERV_PORT, FREIN = 'localhost', 12000, 300
 else:
     SERV_PORT = int(input('Port serveur >>> '))
     FREIN = float(input('50 est bien : '))
 
 
-
+ACCELERATION = 1000
 COLOR_BG = (255,255,255)
 COLOR_P1 = (0,0,0)
 COLOR_P = (0,0,200)
-SPEED = 100
+SPEED = 450
 COLOR_W = (40,40,40)
-BLOC_SIZE = 6
+BLOC_SIZE = 12
+MISSILE_SPEED = 0.0005
+MISSILE_SIZE = 5
+COLOR_MISSILE = (230,0,0)
+CADENCE = 0.2
 
 class rectangle:#obligé de recoder pygame n'aime pas les float
     def __init__(self, x, y, largeur, hauteur):
-        self.x = x
-        self.y = y
+        self.posx = x
+        self.posy = y
         self.largeur = largeur
         self.hauteur = hauteur
         self.top = y
@@ -37,8 +41,8 @@ class rectangle:#obligé de recoder pygame n'aime pas les float
         return self.bottom > y > self.top and self.right > x > self.left
 
     def colliderect(self, autre):
-        return (self.contient(autre.x, autre.y) or self.contient(autre.x+BLOC_SIZE, autre.y) 
-                    or self.contient(autre.x+BLOC_SIZE, autre.y) or self.contient(autre.x+BLOC_SIZE, autre.y+BLOC_SIZE))
+        return (self.contient(autre.posx, autre.posy) or self.contient(autre.posx+BLOC_SIZE, autre.posy) 
+                    or self.contient(autre.posx+BLOC_SIZE, autre.posy) or self.contient(autre.posx+BLOC_SIZE, autre.posy+BLOC_SIZE))
 
 
 def compute_penetration(block, old_rect, new_rect):
@@ -66,9 +70,9 @@ def bloque_sur_collision(map, old_pos, new_pos, v0x, v0y):
                 VX = 0
             if dy_correction != 0. :
                 VY = 0
-            new_rect.y += dy_correction
-            new_rect.x += dx_correction
-    x, y = new_rect.x, new_rect.y
+            new_rect.posy += dy_correction
+            new_rect.posx += dx_correction
+    x, y = new_rect.posx, new_rect.posy
     return x, y, VX, VY
 
 class Wall:
@@ -124,6 +128,8 @@ class Entity:
         self.posy = 20.
         self.vx = 0.
         self.vy = 0.
+        self.accx = 0.
+        self.accy = 0.
         self.world = []
         self.last_update = time.time()
 
@@ -139,16 +145,30 @@ class Entity:
                 print('Echec de la connexion, lors de la tentative '+str(counter))
     
     def communicate(self):
-        #le client envoie :[vx, vy, posx, posy]
-        #et reçoit: [nb_player, id_player, [vx, vy, px, py], ...]
+        #le client envoie :[vx, vy, posx, posy, type, sante, nom]
+        #et reçoit: [nb_entites, id_player, [vx, vy, posx, posy, type], ...]
+        #ou [nb_entites, id_player, [vx, vy, posx, posy, type], ...]
+        #avec type = missile ou joueur
+
         self.connexion.send(pickle.dumps([self.vx, self.vy, self.posx, self.posy]))
-        recu = self.connexion.recv(1024)
+        recu = self.connexion.recv(2048)
         self.world = pickle.loads(recu)
 
     def move(self, carte):
         for coord in self.world[2:]:
             coord[2] += coord[0]*(time.time()-self.last_update)
             coord[3] += coord[1]*(time.time()-self.last_update)
+            
+
+        if self.vx >= 0:
+            self.vx = min(self.accx*(time.time()-self.last_update) + self.vx, SPEED)
+        else:
+            self.vx = max(self.accx*(time.time()-self.last_update) + self.vx, -SPEED)
+
+        if self.vy >= 0:
+            self.vy = min(self.accy*(time.time()-self.last_update) + self.vy, SPEED)
+        else:
+            self.vy = max(self.accy*(time.time()-self.last_update) + self.vy, -SPEED)
 
         if self.vx >= 0:
             self.vx = max(self.vx - FREIN*(time.time()-self.last_update), 0)
@@ -166,12 +186,30 @@ class Entity:
         self.posx, self.posy, self.vx, self.vy = bloque_sur_collision(carte, old_pos, new_pos, self.vx, self.vy)
         self.last_update = time.time()
 
+    def checkMissiles(self, last_launched):
+        liste = []
+        for ent in self.world[2:]:
+            if ent[4] == 'missile':
+                liste.append(ent)
+        if time.time() - last_launched < 0.5:
+            return None
+        for miss in liste:
+            if rectangle(self.posx, self.posy, BLOC_SIZE, BLOC_SIZE).colliderect(rectangle(miss[2], miss[3], 1, 1)):
+                self.vx = self.vy = 0
+                self.posx = self.posy = 20
+                ind = self.world[2:].index(miss)
+                self.connexion.send(pickle.dumps(['destroy', ind]))
+                break
+
     def afficher(self, fenetre):
         #fenetre.fill(COLOR_BG)
         nc = self.world[1] #######
         nbp = self.world[0]
-        for i in range(2, nbp+2):
-            pygame.draw.rect(fenetre, COLOR_P1, (self.world[i][2],self.world[i][3], BLOC_SIZE, BLOC_SIZE))
+        for ent in self.world[2:]:
+            if ent[4] == 'player':
+                pygame.draw.rect(fenetre, COLOR_P1, (ent[2], ent[3], BLOC_SIZE, BLOC_SIZE))
+            elif ent[4] == 'missile':
+                pygame.draw.rect(fenetre, COLOR_MISSILE, (ent[2], ent[3], MISSILE_SIZE, MISSILE_SIZE))
         pygame.draw.rect(fenetre, COLOR_P, (self.posx,self.posy, BLOC_SIZE, BLOC_SIZE))
       
 
@@ -183,11 +221,11 @@ def main():
     carte = Map("map.txt")
 
     fenetre = pygame.display.set_mode((carte.COLS*BLOC_SIZE, carte.LINES*BLOC_SIZE))
-    me.vy = SPEED ####
-
+    last_launched = time.time()
 
     while True:
         me.communicate()
+        me.checkMissiles(last_launched)
         me.move(carte)
         fenetre.fill(COLOR_BG)
         carte.afficher(fenetre)
@@ -198,19 +236,34 @@ def main():
         for event in pygame.event.get():
             if event.type == QUIT:
                 while True:
-                    me.connexion.send(b'fin')
+                    me.connexion.send(pickle.dumps(['fin']))
                     time.sleep(0.2)
-            if event.type == KEYDOWN:
-                if event.key == K_UP:
-                    me.vy = -SPEED
-                if event.key == K_DOWN:
-                    me.vy = SPEED
-                if event.key == K_LEFT:
-                    me.vx = -SPEED
-                if event.key == K_RIGHT:
-                    me.vx = SPEED
-        #if me.vx != 0. :
-        #    print(me.posx, me.posy, me.vx, me.vy)
+            elif event.type == KEYDOWN:
+                if event.key == K_SPACE:
+                    while True:
+                        me.connexion.send(pickle.dumps(['fin']))
+                        time.sleep(0.2)
 
+                
+        keys = pygame.key.get_pressed()
+        if keys[K_UP]:
+            me.accy = -ACCELERATION
+        elif keys[K_DOWN]:
+            me.accy = ACCELERATION
+        else:
+            me.accy = 0
+
+        if keys[K_LEFT]:
+            me.accx = -ACCELERATION
+        elif keys[K_RIGHT]:
+            me.accx = ACCELERATION
+        else: me.accx = 0
+
+        if pygame.mouse.get_pressed()[0]: 
+            if time.time() - last_launched > CADENCE:
+                abscisse, ordonne = pygame.mouse.get_pos()
+                me.connexion.send(pickle.dumps(['shoot', abscisse, ordonne]))
+                last_launched = time.time()      
+        
 main()
 
