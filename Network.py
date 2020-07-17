@@ -22,10 +22,10 @@ COLOR_P = (0,0,200)
 SPEED = 500
 COLOR_W = (40,40,40)
 BLOC_SIZE = 15
-MISSILE_SPEED = 0.0002
+MISSILE_SPEED = 0.0005
 MISSILE_SIZE = 5
 COLOR_MISSILE = (230,0,0)
-CADENCE = 0.2
+CADENCE = 1.0
 
 class rectangle:#obligé de recoder pygame n'aime pas les float
     def __init__(self, x, y, largeur, hauteur):
@@ -201,6 +201,9 @@ class Entity:
                 self.posx = self.posy = 20
                 ind = self.world[2:].index(miss)
                 self.connexion.send(pickle.dumps(['destroy', ind]))
+                print("Perdu !")
+                input()
+                exit(0)
                 break
 
     def afficher(self, fenetre):

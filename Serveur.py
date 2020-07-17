@@ -8,8 +8,69 @@ SIZE = 100
 TIMEOUT = 0.0
 PORT = 12000
 MISSILE_SPEED = 0.0005
+BLOC_SIZE = 15
+
+class Wall:
+    def __init__(self, x, y, health = float('inf')):
+        self.posx = x
+        self.posy = y
+        
+class rectangle:#obligé de recoder pygame n'aime pas les float
+    def __init__(self, x, y, largeur, hauteur):
+        self.posx = x
+        self.posy = y
+        self.largeur = largeur
+        self.hauteur = hauteur
+        self.top = y
+        self.bottom = y + hauteur
+        self.left = x
+        self.right = x + largeur
+    
+    def contient(self, x, y):
+        return self.bottom >= y >= self.top and self.right >= x >= self.left
+
+    def colliderect(self, autre):
+        return (self.contient(autre.posx, autre.posy) or self.contient(autre.posx+BLOC_SIZE, autre.posy) 
+                    or self.contient(autre.posx+BLOC_SIZE, autre.posy) or self.contient(autre.posx+BLOC_SIZE, autre.posy+BLOC_SIZE))
 
 
+class Map:  
+    def __init__(self, path):
+        fichier = open(path, 'r')
+        raw = fichier.read()
+        fichier.close()
+        self.map = []
+        i, j = 0, 0
+        self.LINES, self.COLS = -1, -1
+        for car in raw:
+            if car == '#':
+                self.map.append(Wall(i*BLOC_SIZE, j*BLOC_SIZE))
+            if car == '\n':
+                if j == 0:
+                    self.COLS = i
+                i = 0
+                j += 1
+            else:
+                i += 1
+        self.LINES = j + 1
+        print(self.COLS, " colonnes et ", self.LINES, " lignes.")
+    
+    def detect(self, x, y):
+        toCheck = []
+
+                       
+        for mur in self.map:
+            if abs(mur.posx - x) > 2*BLOC_SIZE or abs(mur.posy - y) > 2*BLOC_SIZE:
+                pass #pour utiliser l'optimisation du or en python
+            else:
+                toCheck.append(mur)
+        
+        for block in toCheck:
+            R = rectangle(block.posx, block.posy, BLOC_SIZE, BLOC_SIZE)
+            if R.contient(x,y):
+                return True
+        return False
+                
 
 class Missile:
     def __init__(self, tireur, x, y): #class cube pour tireur 
@@ -23,7 +84,6 @@ class Missile:
     def move(self, last_update):
         self.posx += self.vx*(time.time()-last_update)
         self.posy += self.vy*(time.time()-last_update)
-
 
 
 class Clients:
@@ -97,20 +157,25 @@ class Clients:
                     c.vx, c.vy, c.posx, c.posy = reception
    
 
-    def run(self, last_update):
+    def run(self, last_update, carte):
         self.accepter_new()
-        self.checkMis()
+        self.checkMis(carte)
         self.update()
         for c in self.clients_connectes:
             c.move(last_update)
         last_update = time.time()
 
-    def checkMis(self):
+    def checkMis(self, carte):
         for i in range(len(self.clients_connectes)):
             if self.clients_connectes[i].type == 'missile':
-                if abs(self.clients_connectes[i].posx) + abs(self.clients_connectes[i].posy) > 1000:
+                if abs(self.clients_connectes[i].posx) + abs(self.clients_connectes[i].posy) > 10000:
                     del self.clients_connectes[i]
                     break
+                if carte.detect(self.clients_connectes[i].posx, self.clients_connectes[i].posy):
+                    del self.clients_connectes[i]
+                    break
+
+
 
 class Cube:
     def __init__(self, IP, connexion, name, posx, posy):
@@ -132,10 +197,11 @@ class Cube:
     
     
 def main():
+    carte = Map("map.txt")
     serv = Clients()
     last_update = time.time()
     while True:
-        serv.run(last_update)
+        serv.run(last_update, carte)
 
 
 
