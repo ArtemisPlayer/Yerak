@@ -9,20 +9,20 @@ SERV_IP = input('IP serveur >>> ')
 
 if SERV_IP == '':
     SERV_IP, SERV_PORT, FREIN = 'localhost', 12000, 300
-else:
-    SERV_PORT = int(input('Port serveur >>> '))
-    FREIN = float(input('50 est bien : '))
 
 
 
+
+SERV_PORT = 12000
+FREIN = 300.0
 ACCELERATION = 2200
 COLOR_BG = (255,255,255)
 COLOR_P1 = (0,0,0)
 COLOR_P = (0,0,200)
-SPEED = 500
+SPEED = 300
 COLOR_W = (40,40,40)
 BLOC_SIZE = 15
-MISSILE_SPEED = 0.0005
+MISSILE_SPEED = 0.01
 MISSILE_SIZE = 5
 COLOR_MISSILE = (230,0,0)
 CADENCE = 1.0
@@ -124,7 +124,7 @@ class Entity:
 
         self.IP = servIP
         self.port = port
-        self.connexion = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+        self.connexion = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         self.posx = 20.
         self.posy = 20.

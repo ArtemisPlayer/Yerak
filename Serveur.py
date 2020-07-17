@@ -88,7 +88,7 @@ class Missile:
 
 class Clients:
     def __init__(self):
-        self.connexion = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+        self.connexion = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connexion.bind(('',PORT))
         self.clients_connectes = []
         self.connexion.listen(5)
