@@ -130,7 +130,7 @@ class Entity:
         nbp = self.world[0]
         for ent in self.world[2:]:
             if ent[4] == 'player':
-                pygame.draw.rect(fenetre, COLOR_P1, (ent[2], ent[3], BLOC_SIZE, BLOC_SIZE))
+                pygame.draw.rect(fenetre, COLOR_W, (ent[2], ent[3], BLOC_SIZE, BLOC_SIZE))
             elif ent[4] == 'missile':
                 pygame.draw.rect(fenetre, COLOR_MISSILE, (ent[2], ent[3], MISSILE_SIZE, MISSILE_SIZE))
         pygame.draw.rect(fenetre, COLOR_P, (self.posx,self.posy, BLOC_SIZE, BLOC_SIZE))
@@ -148,7 +148,9 @@ def player(SERV_IP):
     last_launched = time.time()
 
     aff_time = time.time()
-    
+    masque = pygame.image.load("masque.png")
+    masque = masque.convert_alpha()
+    masque = pygame.transform.scale(masque, (LUM,LUM))
     while True:
         me.communicate()
         me.checkMissiles(last_launched)
@@ -158,8 +160,14 @@ def player(SERV_IP):
 
         if time.time() - aff_time > 0.005:
             fenetre.fill(COLOR_BG)
-            carte.afficher(fenetre)
+            fenetre.blit(masque, (me.posx - LUM//2 + BLOC_SIZE //2,me.posy - LUM//2 + BLOC_SIZE //2))
+            pygame.draw.rect(fenetre, COLOR_W, (me.posx + LUM//2, me.posy - LUM//2, 2000, 2000))
+            pygame.draw.rect(fenetre, COLOR_W, (me.posx - LUM//2 - 2000, me.posy - LUM//2 - 2000, 4000, 2020))
+            pygame.draw.rect(fenetre, COLOR_W, (me.posx - LUM//2 - 2000, me.posy - LUM//2, 2020, 4000))
+            pygame.draw.rect(fenetre, COLOR_W, (me.posx - LUM//2, me.posy + LUM//2, 2000, 2000))
+            carte.afficher(fenetre, me.posx, me.posy)
             me.afficher(fenetre)
+            
             pygame.display.flip()
             aff_time = time.time()
         

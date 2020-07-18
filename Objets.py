@@ -32,6 +32,56 @@ class Wall:
     def afficher(self, fenetre):
         pygame.draw.rect(fenetre, COLOR_W, (self.posx,self.posy, BLOC_SIZE, BLOC_SIZE))
 
+    def ombre(self, fenetre, x0, y0):
+
+        if self.posx == 0 or self.posy == 0 or self.posx == COLS*BLOC_SIZE or self.posy == LINES*BLOC_SIZE:
+            return None
+        xo = x0 + BLOC_SIZE//2
+        yo = y0 + BLOC_SIZE//2
+        
+        d = sqrt((self.posx-xo)**2 + (self.posy-yo)**2)
+
+        if d > 200:
+            return None
+        
+        xi = self.posx + BLOC_SIZE//2
+        yi = self.posy + BLOC_SIZE//2
+        
+        
+        if xo < self.posx and yo < self.posy:
+            x1, y1, x2, y2 = self.posx + BLOC_SIZE, self.posy, self.posx, self.posy + BLOC_SIZE
+
+        elif self.posx <= xo < self.posx + BLOC_SIZE and yo < self.posy:
+            x1, y1, x2, y2 = self.posx + BLOC_SIZE, self.posy, self.posx, self.posy
+
+        elif self.posx <= xo and yo < self.posy:
+            x1, y1, x2, y2 = self.posx + BLOC_SIZE, self.posy + BLOC_SIZE, self.posx, self.posy
+
+        elif self.posx <= xo and self.posy <= yo < self.posy + BLOC_SIZE:
+            x1, y1, x2, y2 = self.posx + BLOC_SIZE, self.posy + BLOC_SIZE, self.posx + BLOC_SIZE, self.posy
+
+        elif self.posx <= xo and self.posy + BLOC_SIZE <= yo:
+            x1, y1, x2, y2 = self.posx, self.posy + BLOC_SIZE, self.posx + BLOC_SIZE, self.posy
+
+        elif self.posx <= xo < self.posx + BLOC_SIZE and self.posy + BLOC_SIZE <= yo:
+            x1, y1, x2, y2 = self.posx, self.posy + BLOC_SIZE, self.posx + BLOC_SIZE, self.posy + BLOC_SIZE
+
+        elif xo < self.posx and self.posy + BLOC_SIZE <= yo:
+            x1, y1, x2, y2 = self.posx, self.posy, self.posx + BLOC_SIZE, self.posy + BLOC_SIZE
+
+        else:
+            x1, y1, x2, y2 = self.posx, self.posy, self.posx, self.posy + BLOC_SIZE
+            
+        d1 = sqrt((xo - x1)**2+(yo - y1)**2)
+        d2 = sqrt((xo - x2)**2+(yo - y2)**2)
+        x3 = (x2 - xo)/d2*2000 + x2
+        y3 = (y2 - yo)/d2*2000 + y2
+        x4 = (x1 - xo)/d1*2000 + x1
+        y4 = (y1 - yo)/d1*2000 + y1
+        pygame.draw.polygon(fenetre, COLOR_W, [(x1, y1), (x2,y2), (x3, y3), (x4, y4)])
+
+
+
 
 class Missile:
     def __init__(self, tireur, x, y): #class cube pour tireur 
@@ -86,9 +136,10 @@ class Map:
                 i += 1
         self.LINES = j + 1
 
-    def afficher(self, fenetre):
+    def afficher(self, fenetre, x, y):
         for w in self.map:
             w.afficher(fenetre)
+            w.ombre(fenetre, x, y)
     
     def detect(self, x, y):
         toCheck = []
