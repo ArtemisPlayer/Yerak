@@ -1,95 +1,14 @@
+from Constantes import *
+from Objets import *
 import socket
-import select
 import time
 import pickle
-from math import sqrt
-
-SIZE = 100
-TIMEOUT = 0.0
-PORT = 12000
-MISSILE_SPEED = 0.0005
-BLOC_SIZE = 15
-
-class Wall:
-    def __init__(self, x, y, health = float('inf')):
-        self.posx = x
-        self.posy = y
-        
-class rectangle:#obligé de recoder pygame n'aime pas les float
-    def __init__(self, x, y, largeur, hauteur):
-        self.posx = x
-        self.posy = y
-        self.largeur = largeur
-        self.hauteur = hauteur
-        self.top = y
-        self.bottom = y + hauteur
-        self.left = x
-        self.right = x + largeur
-    
-    def contient(self, x, y):
-        return self.bottom >= y >= self.top and self.right >= x >= self.left
-
-    def colliderect(self, autre):
-        return (self.contient(autre.posx, autre.posy) or self.contient(autre.posx+BLOC_SIZE, autre.posy) 
-                    or self.contient(autre.posx+BLOC_SIZE, autre.posy) or self.contient(autre.posx+BLOC_SIZE, autre.posy+BLOC_SIZE))
-
-
-class Map:  
-    def __init__(self, path):
-        fichier = open(path, 'r')
-        raw = fichier.read()
-        fichier.close()
-        self.map = []
-        i, j = 0, 0
-        self.LINES, self.COLS = -1, -1
-        for car in raw:
-            if car == '#':
-                self.map.append(Wall(i*BLOC_SIZE, j*BLOC_SIZE))
-            if car == '\n':
-                if j == 0:
-                    self.COLS = i
-                i = 0
-                j += 1
-            else:
-                i += 1
-        self.LINES = j + 1
-        print(self.COLS, " colonnes et ", self.LINES, " lignes.")
-    
-    def detect(self, x, y):
-        toCheck = []
-
-                       
-        for mur in self.map:
-            if abs(mur.posx - x) > 2*BLOC_SIZE or abs(mur.posy - y) > 2*BLOC_SIZE:
-                pass #pour utiliser l'optimisation du or en python
-            else:
-                toCheck.append(mur)
-        
-        for block in toCheck:
-            R = rectangle(block.posx, block.posy, BLOC_SIZE, BLOC_SIZE)
-            if R.contient(x,y):
-                return True
-        return False
-                
-
-class Missile:
-    def __init__(self, tireur, x, y): #class cube pour tireur 
-        self.posx = tireur.posx
-        self.posy = tireur.posy
-        hypo = sqrt((x-self.posx)**2+(y-self.posy)**2)
-        self.vx = (x-self.posx)/hypo*MISSILE_SPEED
-        self.vy = (y-self.posy)/hypo*MISSILE_SPEED
-        self.type = 'missile'
-
-    def move(self, last_update):
-        self.posx += self.vx*(time.time()-last_update)
-        self.posy += self.vy*(time.time()-last_update)
-
+import select
 
 class Clients:
     def __init__(self):
-        self.connexion = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.connexion.bind(('',PORT))
+        self.connexion = socket.socket(CONN_TYPE, socket.SOCK_STREAM)
+        self.connexion.bind(('',SERV_PORT))
         self.clients_connectes = []
         self.connexion.listen(5)
 
@@ -171,46 +90,11 @@ class Clients:
                 if abs(self.clients_connectes[i].posx) + abs(self.clients_connectes[i].posy) > 10000:
                     del self.clients_connectes[i]
                     break
-                if carte.detect(self.clients_connectes[i].posx, self.clients_connectes[i].posy):
-                    del self.clients_connectes[i]
-                    break
-
-
-
-class Cube:
-    def __init__(self, IP, connexion, name, posx, posy):
-        self.IP = IP
-        self.connexion = connexion
-        self.posx = posx
-        self.posy = posy
-        self.vx = 0
-        self.vy = 0
-        self.last_update = time.time()
-        self.nClient = name
-        self.dead = False
-        self.type = 'player'
-
-    def move(self, last_update):
-        #self.posx += self.vx*(time.time()-last_update)
-        #self.posy += self.vy*(time.time()-last_update)
-        pass
-    
-    
-def main():
-    carte = Map("map.txt")
-    serv = Clients()
-    last_update = time.time()
-    while True:
-        serv.run(last_update, carte)
-
-
-
-main()
-
-
-
-
-
+                for block in carte.detect(self.clients_connectes[i].posx, self.clients_connectes[i].posy):
+                    R = rectangle(block.posx, block.posy, BLOC_SIZE, BLOC_SIZE)
+                    if R.contient(self.clients_connectes[i].posx, self.clients_connectes[i].posy):
+                        del self.clients_connectes[i]
+                        break
 
 
 
