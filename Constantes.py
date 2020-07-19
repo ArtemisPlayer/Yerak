@@ -2,7 +2,7 @@ import socket
 
 SERV_PORT = 12000 #Port du serveur
 TIMEOUT = 0.0
-CONN_TYPE = socket.AF_INET6 #socket.AF_INET6 si IPv6
+CONN_TYPE = socket.AF_INET #socket.AF_INET6 si IPv6
 
 FREIN = 300.0  #Ralenti chaque joueur
 ACCELERATION = 2200  #Accelere chaque joueur
