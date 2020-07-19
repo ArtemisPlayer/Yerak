@@ -32,8 +32,8 @@ def bloque_sur_collision(map, old_pos, new_pos, v0x, v0y):
                 VX = 0
             if dy_correction != 0. :
                 VY = 0
-            new_rect.posy += dy_correction
-            new_rect.posx += dx_correction
+            new_rect.posy += dy_correction*1.01
+            new_rect.posx += dx_correction*1.01
     x, y = new_rect.posx, new_rect.posy
     return x, y, VX, VY
 

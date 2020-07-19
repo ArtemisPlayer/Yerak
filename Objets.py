@@ -52,25 +52,25 @@ class Wall:
             x1, y1, x2, y2 = self.posx + BLOC_SIZE, self.posy, self.posx, self.posy + BLOC_SIZE
 
         elif self.posx <= xo < self.posx + BLOC_SIZE and yo < self.posy:
-            x1, y1, x2, y2 = self.posx + BLOC_SIZE, self.posy, self.posx, self.posy
+            x1, y1, x2, y2 = self.posx + BLOC_SIZE, self.posy, self.posx, self.posy 
 
         elif self.posx <= xo and yo < self.posy:
-            x1, y1, x2, y2 = self.posx + BLOC_SIZE, self.posy + BLOC_SIZE, self.posx, self.posy
+            x1, y1, x2, y2 = self.posx + BLOC_SIZE-1, self.posy + BLOC_SIZE, self.posx, self.posy 
 
         elif self.posx <= xo and self.posy <= yo < self.posy + BLOC_SIZE:
-            x1, y1, x2, y2 = self.posx + BLOC_SIZE, self.posy + BLOC_SIZE, self.posx + BLOC_SIZE, self.posy
+            x1, y1, x2, y2 = self.posx + BLOC_SIZE -1, self.posy + BLOC_SIZE, self.posx + BLOC_SIZE-1, self.posy-1
 
-        elif self.posx <= xo and self.posy + BLOC_SIZE <= yo:
-            x1, y1, x2, y2 = self.posx, self.posy + BLOC_SIZE, self.posx + BLOC_SIZE, self.posy
+        elif self.posx + BLOC_SIZE <= xo and self.posy + BLOC_SIZE <= yo:
+            x1, y1, x2, y2 = self.posx-1, self.posy + BLOC_SIZE-1, self.posx + BLOC_SIZE-1, self.posy-1
 
         elif self.posx <= xo < self.posx + BLOC_SIZE and self.posy + BLOC_SIZE <= yo:
-            x1, y1, x2, y2 = self.posx, self.posy + BLOC_SIZE, self.posx + BLOC_SIZE, self.posy + BLOC_SIZE
-
+            x1, y1, x2, y2 = self.posx-1, self.posy + BLOC_SIZE, self.posx + BLOC_SIZE, self.posy + BLOC_SIZE-1
+                                                    #
         elif xo < self.posx and self.posy + BLOC_SIZE <= yo:
-            x1, y1, x2, y2 = self.posx, self.posy, self.posx + BLOC_SIZE, self.posy + BLOC_SIZE
+            x1, y1, x2, y2 = self.posx, self.posy-1, self.posx + BLOC_SIZE-1, self.posy + BLOC_SIZE-1
 
         else:
-            x1, y1, x2, y2 = self.posx, self.posy, self.posx, self.posy + BLOC_SIZE
+            x1, y1, x2, y2 = self.posx , self.posy-1, self.posx, self.posy + BLOC_SIZE
             
         d1 = sqrt((xo - x1)**2+(yo - y1)**2)
         d2 = sqrt((xo - x2)**2+(yo - y2)**2)
