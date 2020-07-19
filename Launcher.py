@@ -5,7 +5,7 @@ from Serveur import *
 from Player import *
 import sys
 import os
-from pygame.locals import *
+
     
 def clear(): 
 
