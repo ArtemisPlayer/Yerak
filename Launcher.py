@@ -34,7 +34,8 @@ def launcher():
             serv.run(last_update, carte)
     elif SERV_IP == '':
         os.popen("python Launcher.py arg")
-        #os.popen("Yerak.exe")
+        #os.popen("Launcher.exe arg")
+        #pour exe
         player('localhost')
     else:
         player(SERV_IP)
