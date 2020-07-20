@@ -5,6 +5,13 @@ from Serveur import *
 from Player import *
 import sys
 import os
+import pygame
+from pygame.locals import *
+
+def winLauncher():
+    pass
+
+
 
     
 def clear(): 

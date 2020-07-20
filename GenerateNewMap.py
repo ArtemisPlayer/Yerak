@@ -28,11 +28,30 @@ class Laby:
     
     def __init__(self):
         self.map = []
+        fichier = open("map.txt")
+        rawData = fichier.readlines()
+        fichier.close()
+        for l in range(len(rawData)):
+            ligne = []
+            for c in range(len(rawData[0])):
+                m = Case(c, l)
+                if rawData[l][c] == ' ':
+                    m.mur = False
+                ligne.append(m)
+            self.map.append(ligne)
+
+        print("Map loaded")
+
+                    
+    def newMap(self):
+        self.map = []
         for i in range(LINES):
             liste = []
             for j in range(COLS):
                 liste.append(Case(j,i))
             self.map.append(liste)
+        self.vider()
+        
                 
     def create_spawns(self, taille):
         for i in range(1, taille+1):
@@ -42,7 +61,7 @@ class Laby:
             for j in range(COLS- taille-1, COLS-1):
                 self.map[i][j].mur = False
 
-    def vider(self):
+    def vider(self):#Non utilisé
         for i in range(1, LINES-1):
             for j in range(1, COLS-1):
                 self.map[i][j].mur = not self.map[i][j].mur
@@ -65,8 +84,7 @@ class Laby:
 
     def main(self):
         fenetre = pygame.display.set_mode((COLS*BLOC_SIZE, LINES*BLOC_SIZE))
-        pygame.display.set_caption("Yerak - EDITEUR DE NIVEAU")
-        print(self.pr())
+        pygame.display.set_caption("YERAK - LEVEL EDITOR")
         while True:
             self.afficher(fenetre)
             pygame.display.flip()
@@ -79,14 +97,23 @@ class Laby:
                         self.map[ordonne // BLOC_SIZE][abscisse // BLOC_SIZE].mur = False
                     else:
                         self.map[ordonne // BLOC_SIZE][abscisse // BLOC_SIZE].mur = True
+
+                if event.type == KEYDOWN:
+                    if event.key == K_SPACE:
+                        self.newMap()
+                        print("New map")
+                    elif event.key == K_RETURN:
+                        ecrire(self.pr())
+                        print("Map saved")
+                    
                 if event.type == QUIT:
-                    ecrire(self.pr())
                     exit()
 
 def main():
+    print("YERAK - LEVEL EDITOR")
+    print("USE: \n   SPACE --> new map\n   ENTER --> save map")
     laby = Laby()
     laby.create_spawns(7)
-    laby.vider()
     laby.main()
 
 

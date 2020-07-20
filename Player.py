@@ -53,6 +53,8 @@ class Entity:
         self.world = []
         self.last_update = time.time()
 
+        self.morts = 0
+
     def connect(self):
         counter = 0
         while True:
@@ -119,10 +121,11 @@ class Entity:
                 self.posx = self.posy = 20
                 ind = self.world[2:].index(miss)
                 self.connexion.send(pickle.dumps(['destroy', ind]))
-                print("Perdu !")
-                input()
-                exit(0)
-                break
+                self.posx = 20.
+                self.posy = 20.
+                self.vx = self.vy = 0.
+                self.morts += 1
+                print("Vous êtes mort pour la " + str(self.morts) + "e fois !")
 
     def afficher(self, fenetre):
         #fenetre.fill(COLOR_BG)

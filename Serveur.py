@@ -96,5 +96,61 @@ class Clients:
                         del self.clients_connectes[i]
                         break
 
+    def lobbyCommunicate(self, nClient, data):
+        if self.clients_connectes[nClient].dead:
+            return ['del']
+        connClient = select.select([self.clients_connectes[nClient].connexion], [], [], TIMEOUT)[0]
+        if connClient == []:
+            return ['del']
+
+        connClient = connClient[0]
+        
+        try:
+            msg_recu = connClient.recv(2048)
+        except ConnectionResetError:
+            print('Connexion reset error')
+            msg_recu = ['fin']
+
+        try:
+            if msg_recu != ['fin']:
+                msg_recu = pickle.loads(msg_recu)
+        except:
+            return None
+
+        if msg_recu == ['fin']:
+            connClient.close()
+            self.clients_connectes[nClient].dead = True
+            self.clients_connectes[nClient].vx = 0
+            self.clients_connectes[nClient].vy = 0
+            return ['del']
+
+
+
+        bdata = pickle.dumps(data)
+        connClient.send(bdata)
+
+
+        return msg_recu
+
+
+    def lobbyUpdate(self, status):
+        liste_send = [status] + [qqn.ip for qqn in self.clients_connectes]
+        for c in range(len(self.clients_connectes)):
+            reception = self.lobbyCommunicate(c, liste_send)
+            if reception == ['del']:
+                del self.clients_connectes[c]
+                break
+            elif reception == ['ready']:
+                pass
+            elif reception == ['notReady']:
+                pass
+            elif reception == ['launch']:
+                pass
+            
+
+    def lobby(self):
+        while True:
+            self.accepter_new()
+            self.lobbyUpdate('lobby')
 
 
