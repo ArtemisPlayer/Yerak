@@ -87,7 +87,7 @@ class Clients:
     def checkMis(self, carte):
         antiBug = len(self.clients_connectes)
         for i in range(len(self.clients_connectes)):
-            if antiBug != self.len(clients_connectes):
+            if antiBug != len(self.clients_connectes):
                 break
             if self.clients_connectes[i].type == 'missile':
                 if abs(self.clients_connectes[i].posx) + abs(self.clients_connectes[i].posy) > 10000:
