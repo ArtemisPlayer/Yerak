@@ -85,7 +85,7 @@ class Clients:
         last_update = time.time()
 
     def checkMis(self, carte):
-        antiBug = self.len(clients_connectes)
+        antiBug = len(self.clients_connectes)
         for i in range(len(self.clients_connectes)):
             if antiBug != self.len(clients_connectes):
                 break
