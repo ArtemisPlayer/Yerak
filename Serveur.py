@@ -85,7 +85,10 @@ class Clients:
         last_update = time.time()
 
     def checkMis(self, carte):
+        antiBug = self.len(clients_connectes)
         for i in range(len(self.clients_connectes)):
+            if antiBug != self.len(clients_connectes):
+                break
             if self.clients_connectes[i].type == 'missile':
                 if abs(self.clients_connectes[i].posx) + abs(self.clients_connectes[i].posy) > 10000:
                     del self.clients_connectes[i]
